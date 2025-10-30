@@ -217,6 +217,13 @@ EOF
         ssh-keygen -t ed25519 -C "Argos Lite" -f ~/.ssh/id_ed25519 -N "" <<< y >/dev/null 2>&1
     fi
 
+    # Adicionar GitHub ao known_hosts automaticamente
+    echo "🔧 Adicionando GitHub ao known_hosts..."
+    mkdir -p ~/.ssh
+    chmod 700 ~/.ssh
+    ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+    chmod 600 ~/.ssh/known_hosts
+
     if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
         echo "✅ Autenticação SSH já configurada."
     else

@@ -61,7 +61,7 @@ validar_recursos() {
             exit 1
         fi
     else
-        echo "✅ RAM: ${ram_gb}MB"
+        echo "✅ RAM: ${ram_mb}MB"
     fi
 
     # Verificar espaço em disco (mínimo 20GB)
@@ -311,22 +311,23 @@ EOF
     # --- Teste containers ---
     cd "$HOME/argos_lite"
     echo "📥 Baixando imagens Docker..."
-    
+
     # Verificar se o usuário tem permissão no Docker
     if ! docker info >/dev/null 2>&1; then
-        echo "⚠️  Permissão do Docker não detectada. Tentando recarregar grupo..."
-        # Recarregar grupos para aplicar a adição ao grupo docker
-        newgrp docker <<EOF || true
-        docker compose pull
-EOF
-        # Verificar novamente
-        if ! docker info >/dev/null 2>&1; then
-            echo "❌ Falha nas permissões do Docker. Execute um dos comandos abaixo:"
-            echo "   Opção 1: newgrp docker"
-            echo "   Opção 2: logout e login novamente"
-            echo "   Opção 3: sudo usermod -aG docker $USER"
-            echo ""
-            echo "💡 Após executar um desses, rode novamente: $HOME/setup.sh"
+        echo "⚠️  Permissão do Docker não detectada. Tentando executar com permissões temporárias..."
+        
+        # Executa o pull com sg (similar ao newgrp mas não-interativo)
+        if command -v sg &> /dev/null; then
+            sg docker -c "cd '$HOME/argos_lite' && docker compose pull" || {
+                echo "❌ Falha no pull. Adicione seu usuário ao grupo docker:"
+                echo "   sudo usermod -aG docker $USER"
+                echo "   Depois faça logout/login e execute novamente"
+                exit 1
+            }
+        else
+            echo "❌ É necessário ter permissão para usar o Docker. Execute:"
+            echo "   sudo usermod -aG docker $USER"
+            echo "   Depois faça logout/login e execute novamente: $HOME/setup.sh"
             exit 1
         fi
     else
@@ -334,7 +335,6 @@ EOF
             echo "❌ Falha no pull das imagens. Verifique:"; 
             echo "   - Conexão com a internet";
             echo "   - Login no GHCR: docker login ghcr.io";
-            echo "   - Permissões do Docker: docker info";
             exit 1; 
         }
     fi

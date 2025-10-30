@@ -281,7 +281,7 @@ EOF
 
     # --- Configuração do GitHub Container Registry ---
     echo "🔑 Configuração do GitHub Container Registry"
-    if cat ~/.docker/config.json 2>/dev/null | grep -q 'ghcr.io'; then
+    if docker-credential-pass list 2>/dev/null | grep -q '"ghcr.io"'; then
         echo "✅ Já autenticado no GHCR."
     else
         echo "📝 Para acessar as imagens Docker, é necessário um token GitHub com permissão 'read:packages'"
@@ -326,7 +326,7 @@ EOF
             echo "   Opção 2: logout e login novamente"
             echo "   Opção 3: sudo usermod -aG docker $USER"
             echo ""
-            echo "💡 Após executar um desses, rode novamente: cd $HOME/argos_lite && docker compose pull"
+            echo "💡 Após executar um desses, rode novamente: $HOME/setup.sh"
             exit 1
         fi
     else
@@ -381,7 +381,7 @@ EOF
     fi
 
     ip_address=$(hostname -I | awk '{print $1}')
-    
+
     echo ""
     echo "🎉 Instalação e verificação concluídas!"
     echo "---------------------------------------------"

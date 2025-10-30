@@ -281,7 +281,7 @@ EOF
 
     # --- Configuração do GitHub Container Registry ---
     echo "🔑 Configuração do GitHub Container Registry"
-    if docker system info 2>/dev/null | grep -q "ghcr.io"; then
+    if cat ~/.docker/config.json 2>/dev/null | grep -q 'ghcr.io'; then
         echo "✅ Já autenticado no GHCR."
     else
         echo "📝 Para acessar as imagens Docker, é necessário um token GitHub com permissão 'read:packages'"
@@ -369,8 +369,10 @@ EOF
         uf_sigla=$(echo "$uf_sigla" | tr '[:lower:]' '[:upper:]')
         configurar_estado "$uf_sigla"
 
-        read -p "Digite o nome do setor responsável: " setor_ti
-        read -p "Digite o email deste setor: " email_ti
+        echo "Digite o nome do setor responsável pela instalação do Argos. Ex: 'Divisão de Inovação'"
+        read -p "Setor: " setor_ti
+        echo "Digite o e-mail do setor responsável pela instalação do Argos. Ex: 'dtip-inovacao@pc.rs.gov.br'"
+        read -p "E-mail: " email_ti
         update_env_var "email_ti" "$email_ti"
         update_env_var "setor_ti" "$setor_ti"
 
@@ -378,13 +380,15 @@ EOF
         update_env_var "IMPORT_TOKEN" "$IMPORT_TOKEN"
     fi
 
+    ip_address=$(hostname -I | awk '{print $1}')
+    
     echo ""
     echo "🎉 Instalação e verificação concluídas!"
     echo "---------------------------------------------"
     echo "📦 Serviço: argos-lite"
-    echo "🌐 Endereço: http://localhost"
+    echo "🌐 Endereço local: http://localhost"
+    echo "🌐 Endereço de rede: http://${ip_address:-desconhecido}"
     echo "📁 Diretório: $HOME/argos_lite"
-    echo "🪪 GHCR: $(docker system info 2>/dev/null | grep 'Username:' || echo 'não logado')"
     echo "---------------------------------------------"
     echo "💡 Dica: use 'sudo systemctl status argos-lite' para monitorar o serviço."
     echo ""

@@ -380,6 +380,10 @@ EOF
         update_env_var "IMPORT_TOKEN" "$IMPORT_TOKEN"
     fi
 
+    # --- Cron para atualizações ---
+    (crontab -l 2>/dev/null; echo "0 2 * * * $HOME/argos_lite/run.sh") | crontab -
+
+    # --- Resumo final ---
     ip_address=$(hostname -I | awk '{print $1}')
 
     echo ""

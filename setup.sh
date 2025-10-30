@@ -181,7 +181,6 @@ main() {
         sudo apt-get update
         sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
         sudo usermod -aG docker $USER
-        echo "⚠️  Execute 'newgrp docker' ou faça logout/login para aplicar as alterações do grupo docker."
     else
         echo "✅ Docker já instalado corretamente."
     fi

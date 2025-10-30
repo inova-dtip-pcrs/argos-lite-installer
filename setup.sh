@@ -311,7 +311,34 @@ EOF
     # --- Teste containers ---
     cd "$HOME/argos_lite"
     echo "📥 Baixando imagens Docker..."
-    docker compose pull || { echo "❌ Falha no pull das imagens. Verifique credenciais."; exit 1; }
+    
+    # Verificar se o usuário tem permissão no Docker
+    if ! docker info >/dev/null 2>&1; then
+        echo "⚠️  Permissão do Docker não detectada. Tentando recarregar grupo..."
+        # Recarregar grupos para aplicar a adição ao grupo docker
+        newgrp docker <<EOF || true
+        docker compose pull
+EOF
+        # Verificar novamente
+        if ! docker info >/dev/null 2>&1; then
+            echo "❌ Falha nas permissões do Docker. Execute um dos comandos abaixo:"
+            echo "   Opção 1: newgrp docker"
+            echo "   Opção 2: logout e login novamente"
+            echo "   Opção 3: sudo usermod -aG docker $USER"
+            echo ""
+            echo "💡 Após executar um desses, rode novamente: cd $HOME/argos_lite && docker compose pull"
+            exit 1
+        fi
+    else
+        docker compose pull || { 
+            echo "❌ Falha no pull das imagens. Verifique:"; 
+            echo "   - Conexão com a internet";
+            echo "   - Login no GHCR: docker login ghcr.io";
+            echo "   - Permissões do Docker: docker info";
+            exit 1; 
+        }
+    fi
+    echo "✅ Imagens Docker baixadas com sucesso!"
 
     # --- Serviço systemd ---
     if systemctl list-unit-files | grep -q "^argos-lite.service"; then

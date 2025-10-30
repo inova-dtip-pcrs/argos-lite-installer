@@ -53,8 +53,8 @@ validar_recursos() {
     echo "🔍 Validando recursos do sistema..."
     
     # Verificar RAM (mínimo 4GB)
-    local ram_gb=$(free -g | awk '/Mem:/ {print $2}')
-    if [ "$ram_gb" -lt 4 ]; then
+    local ram_gb=$(free -m | awk '/Mem:/ {print $2}')
+    if [ "$ram_gb" -lt 3900 ]; then
         echo "⚠️  AVISO: RAM insuficiente - Encontrado: ${ram_gb}GB, Mínimo recomendado: 4GB"
         read -p "Continuar mesmo assim? (s/n): " continuar
         if [ "$continuar" != "s" ]; then

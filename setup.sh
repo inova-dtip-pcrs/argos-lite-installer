@@ -257,7 +257,27 @@ EOF
         echo "📦 Clonando repositório..."
         git clone git@github.com:inova-dtip-pcrs/argos_lite.git "$HOME/argos_lite"
     fi
+
+    # --- Configurar docker-credential-pass ANTES do login ---
+    echo "🔧 Configurando docker-credential-pass..."
     chmod +x "$HOME/argos_lite/run.sh" "$HOME/argos_lite/redist/docker-credential-pass"
+
+    # Adicionar ao PATH temporariamente para esta sessão
+    export PATH="$HOME/argos_lite/redist:$PATH"
+
+    # Adicionar ao PATH permanentemente no .bashrc
+    if ! grep -q "argos_lite/redist" ~/.bashrc; then
+        echo 'export PATH="$HOME/argos_lite/redist:$PATH"' >> ~/.bashrc
+        echo "✅ PATH atualizado no .bashrc"
+    fi
+
+    # Verificar se o docker-credential-pass está acessível
+    if command -v docker-credential-pass &> /dev/null; then
+        echo "✅ docker-credential-pass configurado corretamente"
+    else
+        echo "⚠️  Aviso: docker-credential-pass não encontrado no PATH"
+        echo "💡 Usando caminho absoluto como fallback..."
+    fi
 
     # --- Configuração do GitHub Container Registry ---
     echo "🔑 Configuração do GitHub Container Registry"
@@ -269,11 +289,17 @@ EOF
         echo ""
         read -p "Digite seu token GitHub (ghp_...): " github_token
         if [ -n "$github_token" ]; then
+            # Garantir que o PATH está configurado para esta sessão
+            export PATH="$HOME/argos_lite/redist:$PATH"
+            
             echo "$github_token" | docker login ghcr.io -u USERNAME --password-stdin
             if [ $? -eq 0 ]; then
                 echo "✅ Login no GHCR realizado com sucesso!"
             else
-                echo "❌ Falha no login no GHCR. Verifique o token."
+                echo "❌ Falha no login no GHCR. Verifique:"
+                echo "   - O token está correto e tem permissão 'read:packages'"
+                echo "   - Conexão com a internet"
+                echo "   - Execute manualmente depois: docker login ghcr.io"
                 exit 1
             fi
         else

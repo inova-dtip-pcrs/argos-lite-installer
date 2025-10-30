@@ -53,22 +53,22 @@ validar_recursos() {
     echo "🔍 Validando recursos do sistema..."
     
     # Verificar RAM (mínimo 4GB)
-    local ram_gb=$(free -m | awk '/Mem:/ {print $2}')
-    if [ "$ram_gb" -lt 3900 ]; then
-        echo "⚠️  AVISO: RAM insuficiente - Encontrado: ${ram_gb}GB, Mínimo recomendado: 4GB"
+    local ram_mb=$(free -m | awk '/Mem:/ {print $2}')
+    if [ "$ram_mb" -lt 3900 ]; then
+        echo "⚠️  AVISO: RAM insuficiente - Encontrado: ${ram_mb}MB, Mínimo recomendado: 4GB"
         read -p "Continuar mesmo assim? (s/n): " continuar
         if [ "$continuar" != "s" ]; then
             exit 1
         fi
     else
-        echo "✅ RAM: ${ram_gb}GB"
+        echo "✅ RAM: ${ram_gb}MB"
     fi
 
-    # Verificar espaço em disco (mínimo 30GB)
+    # Verificar espaço em disco (mínimo 20GB)
     local disco_kb=$(df / --output=avail | tail -1)
     local disco_gb=$((disco_kb / 1024 / 1024))
-    if [ "$disco_gb" -lt 30 ]; then
-        echo "⚠️  AVISO: Espaço em disco insuficiente - Encontrado: ${disco_gb}GB, Mínimo: 30GB"
+    if [ "$disco_gb" -lt 19 ]; then
+        echo "⚠️  AVISO: Espaço em disco insuficiente - Encontrado: ${disco_gb}GB, Mínimo: 20GB"
         read -p "Continuar mesmo assim? (s/n): " continuar
         if [ "$continuar" != "s" ]; then
             exit 1

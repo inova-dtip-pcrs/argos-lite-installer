@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-trap 'echo "❌ Erro na execução. Abortando setup."; exit 1' ERR
+trap 'echo "Erro na execução. Abortando setup."; exit 1' ERR
 
 # --- Funções utilitárias ---
 
@@ -45,49 +45,49 @@ configurar_estado() {
     update_env_var "brasao_oficio" "${dados[5]}"
     update_env_var "header_estado_oficio" "${dados[6]}"
 
-    echo "✅ Configuração do estado '${dados[1]}' aplicada com sucesso!"
+    echo "Configuração do estado '${dados[1]}' aplicada com sucesso!"
 }
 
 # Função para validar recursos do sistema
 validar_recursos() {
-    echo "🔍 Validando recursos do sistema..."
+    echo "Validando recursos do sistema..."
     
     # Verificar RAM (mínimo 4GB)
     local ram_mb=$(free -m | awk '/Mem:/ {print $2}')
     if [ "$ram_mb" -lt 3900 ]; then
-        echo "⚠️  AVISO: RAM insuficiente - Encontrado: ${ram_mb}MB, Mínimo recomendado: 4GB"
+        echo "AVISO: RAM insuficiente - Encontrado: ${ram_mb}MB, Mínimo recomendado: 4GB"
         read -p "Continuar mesmo assim? (s/n): " continuar
         if [ "$continuar" != "s" ]; then
             exit 1
         fi
     else
-        echo "✅ RAM: ${ram_mb}MB"
+        echo "RAM: ${ram_mb}MB"
     fi
 
     # Verificar espaço em disco (mínimo 20GB)
     local disco_kb=$(df / --output=avail | tail -1)
     local disco_gb=$((disco_kb / 1024 / 1024))
     if [ "$disco_gb" -lt 19 ]; then
-        echo "⚠️  AVISO: Espaço em disco insuficiente - Encontrado: ${disco_gb}GB, Mínimo: 20GB"
+        echo "AVISO: Espaço em disco insuficiente - Encontrado: ${disco_gb}GB, Mínimo: 20GB"
         read -p "Continuar mesmo assim? (s/n): " continuar
         if [ "$continuar" != "s" ]; then
             exit 1
         fi
     else
-        echo "✅ Espaço em disco: ${disco_gb}GB"
+        echo "Espaço em disco: ${disco_gb}GB"
     fi
 
     # Verificar Ubuntu 24.04
     if [ -f /etc/os-release ]; then
         source /etc/os-release
         if [ "$VERSION_ID" != "24.04" ]; then
-            echo "⚠️  AVISO: Sistema testado no Ubuntu 24.04. Versão detectada: $VERSION_ID"
+            echo "AVISO: Sistema testado no Ubuntu 24.04. Versão detectada: $VERSION_ID"
             read -p "Continuar mesmo assim? (s/n): " continuar
             if [ "$continuar" != "s" ]; then
                 exit 1
             fi
         else
-            echo "✅ Ubuntu $VERSION_ID"
+            echo "Ubuntu $VERSION_ID"
         fi
     fi
 }
@@ -98,7 +98,7 @@ validar_recursos
 # Verificar comandos essenciais
 for cmd in curl git gpg python3; do
     if ! command -v $cmd >/dev/null 2>&1; then
-        echo "📦 Instalando $cmd..."
+        echo "Instalando $cmd..."
         sudo apt-get update
         sudo apt-get install -y $cmd
     fi
@@ -138,36 +138,36 @@ declare -A estados=(
 
 # --- Execução principal ---
 main() {
-    echo "🚀 Iniciando instalação do ARGOS Lite..."
+    echo "Iniciando instalação do ARGOS Lite..."
 
     # --- Docker ---
-    echo "🔍 Verificando instalação do Docker..."
+    echo "Verificando instalação do Docker..."
     docker_needs_install=false
 
     if command -v docker &> /dev/null; then
-        echo "✅ Docker encontrado."
+        echo "Docker encontrado."
 
         if snap list 2>/dev/null | grep -q "^docker"; then
-            echo "⚠️  Docker via SNAP detectado — removendo..."
+            echo "Docker via SNAP detectado — removendo..."
             sudo snap remove docker || true
             docker_needs_install=true
         elif ! dpkg -l | grep -q "docker-ce"; then
-            echo "⚠️  Docker instalado manualmente — reinstalando via APT."
+            echo "Docker instalado manualmente — reinstalando via APT."
             sudo apt-get remove -y docker docker.io podman-docker containerd runc || true
             docker_needs_install=true
         fi
     else
-        echo "❌ Docker não encontrado — instalando..."
+        echo "Docker não encontrado — instalando..."
         docker_needs_install=true
     fi
 
     if ! docker compose version &>/dev/null; then
-        echo "⚠️  docker compose não encontrado — instalando plugin."
+        echo "docker compose não encontrado — instalando plugin."
         docker_needs_install=true
     fi
 
     if [ "$docker_needs_install" = true ]; then
-        echo "📦 Instalando Docker via APT..."
+        echo "Instalando Docker via APT..."
         sudo apt-get update
         sudo apt-get install -y ca-certificates curl pass gnupg2
         sudo install -m 0755 -d /etc/apt/keyrings
@@ -182,14 +182,14 @@ main() {
         sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
         sudo usermod -aG docker $USER
     else
-        echo "✅ Docker já instalado corretamente."
+        echo "Docker já instalado corretamente."
     fi
 
     # --- Configuração do pass / GPG ---
     if pass ls &>/dev/null; then
-        echo "✅ 'pass' já configurado."
+        echo "'pass' já configurado."
     else
-        echo "🔧 Configurando 'pass'..."
+        echo "Configurando 'pass'..."
         gpg --batch --gen-key <<EOF
 Key-Type: RSA
 Key-Length: 4096
@@ -210,39 +210,39 @@ EOF
 
     # --- SSH ---
     if [ -f "$HOME/.ssh/id_ed25519" ]; then
-        echo "✅ Chave SSH existente."
+        echo "Chave SSH existente."
     else
-        echo "🔧 Gerando chave SSH..."
+        echo "Gerando chave SSH..."
         ssh-keygen -t ed25519 -C "Argos Lite" -f ~/.ssh/id_ed25519 -N "" <<< y >/dev/null 2>&1
     fi
 
     # Adicionar GitHub ao known_hosts automaticamente
-    echo "🔧 Adicionando GitHub ao known_hosts..."
+    echo "Adicionando GitHub ao known_hosts..."
     mkdir -p ~/.ssh
     chmod 700 ~/.ssh
     ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
     chmod 600 ~/.ssh/known_hosts
 
     if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
-        echo "✅ Autenticação SSH já configurada."
+        echo "Autenticação SSH já configurada."
     else
-        echo "🔑 Adicione a chave SSH abaixo ao GitHub (https://github.com/settings/keys):"
+        echo "Adicione a chave SSH abaixo ao GitHub (https://github.com/settings/keys):"
         cat ~/.ssh/id_ed25519.pub
         echo ""
-        echo "⚠️  Aguarde a configuração da chave SSH no GitHub..."
+        echo "Aguarde a configuração da chave SSH no GitHub..."
         while true; do
             read -p "Pressione Enter para testar conexão SSH após adicionar a chave..." -n 1
             echo ""
             if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
-                echo "✅ Conexão SSH com GitHub estabelecida!"
+                echo "Conexão SSH com GitHub estabelecida!"
                 break
             else
-                echo "❌ Falha na autenticação — verifique se a chave foi adicionada corretamente."
+                echo "Falha na autenticação — verifique se a chave foi adicionada corretamente."
                 echo "Deseja tentar novamente? (s/n): "
                 read -n 1 tentar_novamente
                 echo ""
                 if [ "$tentar_novamente" != "s" ]; then
-                    echo "⚠️  Continuando sem confirmação SSH. Certifique-se de configurar manualmente."
+                    echo "Continuando sem confirmação SSH. Certifique-se de configurar manualmente."
                     break
                 fi
             fi
@@ -251,14 +251,14 @@ EOF
 
     # --- Clone do projeto ---
     if [ -d "$HOME/argos_lite" ]; then
-        echo "✅ Repositório 'argos_lite' já clonado."
+        echo "Repositório 'argos_lite' já clonado."
     else
-        echo "📦 Clonando repositório..."
+        echo "Clonando repositório..."
         git clone git@github.com:inova-dtip-pcrs/argos_lite.git "$HOME/argos_lite"
     fi
 
     # --- Configurar docker-credential-pass ANTES do login ---
-    echo "🔧 Configurando docker-credential-pass..."
+    echo "Configurando docker-credential-pass..."
     chmod +x "$HOME/argos_lite/run.sh" "$HOME/argos_lite/redist/docker-credential-pass"
 
     # Adicionar ao PATH temporariamente para esta sessão
@@ -267,24 +267,24 @@ EOF
     # Adicionar ao PATH permanentemente no .bashrc
     if ! grep -q "argos_lite/redist" ~/.bashrc; then
         echo 'export PATH="$HOME/argos_lite/redist:$PATH"' >> ~/.bashrc
-        echo "✅ PATH atualizado no .bashrc"
+        echo "PATH atualizado no .bashrc"
     fi
 
     # Verificar se o docker-credential-pass está acessível
     if command -v docker-credential-pass &> /dev/null; then
-        echo "✅ docker-credential-pass configurado corretamente"
+        echo "docker-credential-pass configurado corretamente"
     else
-        echo "⚠️  Aviso: docker-credential-pass não encontrado no PATH"
-        echo "💡 Usando caminho absoluto como fallback..."
+        echo "Aviso: docker-credential-pass não encontrado no PATH"
+        echo "Usando caminho absoluto como fallback..."
     fi
 
     # --- Configuração do GitHub Container Registry ---
-    echo "🔑 Configuração do GitHub Container Registry"
+    echo "Configuração do GitHub Container Registry"
     if docker-credential-pass list 2>/dev/null | grep -q '"ghcr.io"'; then
-        echo "✅ Já autenticado no GHCR."
+        echo "Já autenticado no GHCR."
     else
-        echo "📝 Para acessar as imagens Docker, é necessário um token GitHub com permissão 'read:packages'"
-        echo "📖 Como obter: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)"
+        echo "Para acessar as imagens Docker, é necessário um token GitHub com permissão 'read:packages'"
+        echo "Como obter: GitHub → Settings → Developer settings → Personal access tokens → Tokens (classic)"
         echo ""
         read -p "Digite seu token GitHub (ghp_...): " github_token
         if [ -n "$github_token" ]; then
@@ -295,55 +295,55 @@ EOF
             if [ $? -eq 0 ]; then
                 echo "✅ Login no GHCR realizado com sucesso!"
             else
-                echo "❌ Falha no login no GHCR. Verifique:"
+                echo "Falha no login no GHCR. Verifique:"
                 echo "   - O token está correto e tem permissão 'read:packages'"
                 echo "   - Conexão com a internet"
                 echo "   - Execute manualmente depois: docker login ghcr.io"
                 exit 1
             fi
         else
-            echo "❌ Token não fornecido. Não será possível baixar as imagens."
+            echo "Token não fornecido. Não será possível baixar as imagens."
             exit 1
         fi
     fi
 
     # --- Teste containers ---
     cd "$HOME/argos_lite"
-    echo "📥 Baixando imagens Docker..."
+    echo "Baixando imagens Docker..."
 
     # Verificar se o usuário tem permissão no Docker
     if ! docker info >/dev/null 2>&1; then
-        echo "⚠️  Permissão do Docker não detectada. Tentando executar com permissões temporárias..."
+        echo "Permissão do Docker não detectada. Tentando executar com permissões temporárias..."
         
         # Executa o pull com sg (similar ao newgrp mas não-interativo)
         if command -v sg &> /dev/null; then
             sg docker -c "cd '$HOME/argos_lite' && docker compose pull" || {
-                echo "❌ Falha no pull. Adicione seu usuário ao grupo docker:"
+                echo "Falha no pull. Adicione seu usuário ao grupo docker:"
                 echo "   sudo usermod -aG docker $USER"
                 echo "   Depois faça logout/login e execute novamente"
                 exit 1
             }
         else
-            echo "❌ É necessário ter permissão para usar o Docker. Execute:"
+            echo "É necessário ter permissão para usar o Docker. Execute:"
             echo "   sudo usermod -aG docker $USER"
             echo "   Depois faça logout/login e execute novamente: $HOME/setup.sh"
             exit 1
         fi
     else
         docker compose pull || { 
-            echo "❌ Falha no pull das imagens. Verifique:"; 
+            echo "Falha no pull das imagens. Verifique:"; 
             echo "   - Conexão com a internet";
             echo "   - Login no GHCR: docker login ghcr.io";
             exit 1; 
         }
     fi
-    echo "✅ Imagens Docker baixadas com sucesso!"
+    echo "Imagens Docker baixadas com sucesso!"
 
     # --- Serviço systemd ---
     if systemctl list-unit-files | grep -q "^argos-lite.service"; then
-        echo "✅ Serviço 'argos-lite' já existe."
+        echo "Serviço 'argos-lite' já existe."
     else
-        echo "⚙️  Criando serviço 'argos-lite'..."
+        echo "Criando serviço 'argos-lite'..."
         sed "s|{{HOME}}|$HOME|g" "$HOME/argos_lite/redist/argos-lite.service" | \
         sudo tee /etc/systemd/system/argos-lite.service > /dev/null
         sudo systemctl daemon-reload
@@ -351,15 +351,15 @@ EOF
     fi
 
     if systemctl is-active --quiet argos-lite; then
-        echo "✅ Serviço 'argos-lite' já em execução."
+        echo "Serviço 'argos-lite' já em execução."
     else
-        echo "▶️  Iniciando serviço 'argos-lite'..."
+        echo "Iniciando serviço 'argos-lite'..."
         sudo systemctl start argos-lite
     fi
 
     # --- Configuração do .env ---
     if [ ! -f "$HOME/argos_lite/.env" ]; then
-        echo "⚠️  Arquivo .env não encontrado — algumas configurações podem faltar."
+        echo "Arquivo .env não encontrado — algumas configurações podem faltar."
     else
         SECRET_KEY=$(python3 -c "import secrets; print(secrets.token_hex(32))")
         update_env_var "SECRET_KEY" "$SECRET_KEY"
@@ -385,7 +385,7 @@ EOF
     # --- Rodar o programa ---
     echo "Executando Argos Lite pela primeira vez..."
     sg docker -c '$HOME/argos_lite/run.sh' || {
-        echo "❌ Falha na configuração inicial do Argos Lite."
+        echo "Falha na configuração inicial do Argos Lite."
         exit 1
     }
 
@@ -393,17 +393,17 @@ EOF
     ip_address=$(hostname -I | awk '{print $1}')
 
     echo ""
-    echo "🎉 Instalação e verificação concluídas!"
+    echo "Instalação e verificação concluídas!"
     echo "---------------------------------------------"
-    echo "📦 Serviço: argos-lite"
-    echo "🌐 Endereço local: http://localhost"
-    echo "🌐 Endereço de rede: http://${ip_address:-desconhecido}"
-    echo "🌐 Carga manual de órgãos: http://${ip_address:-desconhecido}/delegaciasDb.html?tk=$IMPORT_TOKEN"
-    echo "📁 Diretório: $HOME/argos_lite"
+    echo "Serviço: argos-lite"
+    echo "Endereço local: http://localhost"
+    echo "Endereço de rede: http://${ip_address:-desconhecido}"
+    echo "Carga manual de órgãos: http://${ip_address:-desconhecido}/delegaciasDb.html?tk=$IMPORT_TOKEN"
+    echo "Diretório: $HOME/argos_lite"
     echo "---------------------------------------------"
-    echo "💡 Dica: use 'sudo systemctl status argos-lite' para monitorar o serviço."
+    echo "Dica: use 'sudo systemctl status argos-lite' para monitorar o serviço."
     echo ""
-    echo "⚠️  IMPORTANTE: Execute 'newgrp docker' ou faça logout/login para aplicar as alterações do grupo docker."
+    echo "IMPORTANTE: Execute 'newgrp docker' ou faça logout/login para aplicar as alterações do grupo docker."
 }
 
 main "$@"

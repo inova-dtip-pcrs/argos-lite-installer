@@ -383,7 +383,7 @@ EOF
     (crontab -l 2>/dev/null; echo "0 2 * * * $HOME/argos_lite/run.sh") | crontab -
 
     # --- Rodar o programa ---
-    sg docker -c '$HOME/argos_lite/run.sh setup' || {
+    sg docker -c '$HOME/argos_lite/run.sh' || {
         echo "❌ Falha na configuração inicial do Argos Lite."
         exit 1
     }

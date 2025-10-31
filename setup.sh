@@ -38,12 +38,12 @@ configurar_estado() {
 
     IFS='|' read -r -a dados <<< "${estados[$sigla]}"
     update_env_var "ESTADO" "${dados[0]}"
-    update_env_var "estado_extenso" "'${dados[1]}'"
-    update_env_var "capital_estado" "'${dados[2]}'"
+    update_env_var "estado_extenso" "${dados[1]}"
+    update_env_var "capital_estado" "${dados[2]}"
     update_env_var "dominio_email" "${dados[3]}"
     update_env_var "brasao_site" "${dados[4]}"
     update_env_var "brasao_oficio" "${dados[5]}"
-    update_env_var "header_estado_oficio" "'${dados[6]}'"
+    update_env_var "header_estado_oficio" "${dados[6]}"
 
     echo "✅ Configuração do estado '${dados[1]}' aplicada com sucesso!"
 }
@@ -381,6 +381,12 @@ EOF
 
     # --- Cron para atualizações ---
     (crontab -l 2>/dev/null; echo "0 2 * * * $HOME/argos_lite/run.sh") | crontab -
+
+    # --- Rodar o programa ---
+    $HOME/argos_lite/run.sh setup || {
+        echo "❌ Falha na configuração inicial do Argos Lite."
+        exit 1
+    }
 
     # --- Resumo final ---
     ip_address=$(hostname -I | awk '{print $1}')

@@ -226,7 +226,7 @@ EOF
     if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then
         echo "✅ Autenticação SSH já configurada."
     else
-        echo "🔑 Adicione a chave abaixo ao GitHub (https://github.com/settings/keys):"
+        echo "🔑 Adicione a chave SSH abaixo ao GitHub (https://github.com/settings/keys):"
         cat ~/.ssh/id_ed25519.pub
         echo ""
         echo "⚠️  Aguarde a configuração da chave SSH no GitHub..."
@@ -383,7 +383,7 @@ EOF
     (crontab -l 2>/dev/null; echo "0 2 * * * $HOME/argos_lite/run.sh") | crontab -
 
     # --- Rodar o programa ---
-    $HOME/argos_lite/run.sh setup || {
+    sg docker -c '$HOME/argos_lite/run.sh setup' || {
         echo "❌ Falha na configuração inicial do Argos Lite."
         exit 1
     }

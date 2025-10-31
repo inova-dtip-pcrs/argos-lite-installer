@@ -398,6 +398,7 @@ EOF
     echo "📦 Serviço: argos-lite"
     echo "🌐 Endereço local: http://localhost"
     echo "🌐 Endereço de rede: http://${ip_address:-desconhecido}"
+    echo "🌐 Carga manual de órgãos: http://${ip_address:-desconhecido}/delegaciasDb.html?tk=$IMPORT_TOKEN"
     echo "📁 Diretório: $HOME/argos_lite"
     echo "---------------------------------------------"
     echo "💡 Dica: use 'sudo systemctl status argos-lite' para monitorar o serviço."
